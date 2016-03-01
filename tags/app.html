@@ -1,0 +1,19 @@
+<app>
+    <div>TODO LIST</div>
+    <nest todos="{todos}" selector="{selector}"></nest>
+    <script>
+    "use strict";
+
+    var self = this;
+    this.mixin('redux');
+
+    var loadAllTodos = domain.actions.loadAllTodos;
+
+    self.on('mount', function(){
+        self.dispatch(loadAllTodos());
+    });
+
+    self.subscribe(domain.selectors.loadAllTodos);
+
+    </script>
+</app>

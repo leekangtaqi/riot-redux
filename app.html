@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="./jspm_packages/system.js"></script>
+    <script type="text/javascript" src="./config.js"></script>
+</head>
+<body>
+    <app></app>
+    <script type="riot/tag" src="./tags/app.html"></script>
+    <script type="riot/tag" src="./tags/nest.html"></script>
+    <script type="text/javascript">
+        System.import('./build/index')
+                .then(null, console.error.bind(console));
+    </script>
+</body>
+</html>

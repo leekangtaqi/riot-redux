@@ -1,0 +1,1 @@
+module.exports = require("npm:reselect@2.0.3/lib/index.js");

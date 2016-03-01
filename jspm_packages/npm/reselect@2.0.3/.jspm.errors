@@ -1,0 +1,8 @@
+MultipleErrors: /Users/bjhl/.jspm/packages/npm/reselect@2.0.3/src/index.js:5:1: Unexpected reserved word export
+/Users/bjhl/.jspm/packages/npm/reselect@2.0.3/src/index.js:5:8: Semi-colon expected
+/Users/bjhl/.jspm/packages/npm/reselect@2.0.3/src/index.js:38:1: Unexpected reserved word export
+/Users/bjhl/.jspm/packages/npm/reselect@2.0.3/src/index.js:38:8: Semi-colon expected
+/Users/bjhl/.jspm/packages/npm/reselect@2.0.3/src/index.js:64:1: Unexpected reserved word export
+/Users/bjhl/.jspm/packages/npm/reselect@2.0.3/src/index.js:64:8: Semi-colon expected
+/Users/bjhl/.jspm/packages/npm/reselect@2.0.3/src/index.js:68:1: Unexpected reserved word export
+/Users/bjhl/.jspm/packages/npm/reselect@2.0.3/src/index.js:68:8: Semi-colon expected

@@ -1,0 +1,17 @@
+<nest>
+    <input name="taskName"/>
+    <input type="button" onclick="{onClick}" value="添加">
+    <div each="{todo in opts.todos}">{todo.text}</div>
+    <script>
+        this.mixin('redux');
+        var self = this;
+        var addTodos = domain.actions.addTodos;
+
+        this.onClick = function(){
+            self.dispatch(addTodos(self.taskName.value))
+            self.taskName.value='';
+        }
+
+    </script>
+
+</nest>

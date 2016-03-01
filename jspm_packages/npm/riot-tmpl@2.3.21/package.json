@@ -1,0 +1,51 @@
+{
+  "name": "riot-tmpl",
+  "version": "2.3.21",
+  "description": "The riot template engine",
+  "main": "dist/tmpl.js",
+  "jsnext:main": "dist/es6.tmpl.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "files": [
+    "src",
+    "doc",
+    "dist/*.js",
+    "test/**"
+  ],
+  "scripts": {
+    "test": "make test",
+    "prepublish": "make build && ./node_modules/.bin/riot-bump"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/riot/tmpl.git"
+  },
+  "keywords": [
+    "riot",
+    "tmpl",
+    "template",
+    "engine"
+  ],
+  "devDependencies": {
+    "coveralls": "^2.11.6",
+    "eslint": "^1.10.3",
+    "expect.js": "^0.3.1",
+    "istanbul": "^0.4.2",
+    "jspreproc": "^0.2.7",
+    "karma": "^0.13.19",
+    "karma-browserstack-launcher": "^0.1.6",
+    "karma-coverage": "^0.5.3",
+    "karma-mocha": "^0.2.1",
+    "karma-phantomjs-launcher": "^0.2.3",
+    "mocha": "^2.4.4",
+    "phantomjs": "^2.1.2",
+    "riot-bump": "^1.0.0"
+  },
+  "author": "Muut, Inc. and other contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/riot/tmpl/issues"
+  },
+  "homepage": "https://github.com/riot/tmpl#readme"
+}

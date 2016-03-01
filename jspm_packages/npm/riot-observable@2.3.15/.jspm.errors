@@ -1,0 +1,4 @@
+MultipleErrors: /Users/bjhl/.jspm/packages/npm/riot-observable@2.3.15/dist/es6.observable.js:131:1: Unexpected reserved word export
+/Users/bjhl/.jspm/packages/npm/riot-observable@2.3.15/dist/es6.observable.js:131:8: Semi-colon expected
+/Users/bjhl/.jspm/packages/npm/riot-observable@2.3.15/dist/es6.observable.js:131:8: Unexpected reserved word default
+/Users/bjhl/.jspm/packages/npm/riot-observable@2.3.15/dist/es6.observable.js:131:16: Semi-colon expected
