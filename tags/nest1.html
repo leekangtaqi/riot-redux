@@ -1,0 +1,26 @@
+<nest1>
+    <div if="{!hidden}">
+        <input name="taskName"/>
+        <input type="button" onclick="{onClick}" value="添加">
+        <div each="{todo in opts.todos}">{todo.text}</div>
+    </div>
+    <script>
+        this.mixin('base');
+        var self = this;
+        var addTodos = domain.actions.addTodos;
+        this.on('open', function(ctx){
+            console.log('nest opened')
+            self.trigger('ready');
+            console.log(ctx)
+        });
+        this.onClick = function(){
+            self.dispatch(addTodos(self.taskName.value))
+            self.taskName.value='';
+        };
+        this.on('leave', function(){
+            console.log('leave');
+        });
+
+    </script>
+
+</nest1>

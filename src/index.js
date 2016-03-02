@@ -7,11 +7,10 @@ import {actions} from './actions/index';
 import * as ImmutableDefault from 'immutable';
 import * as fetchAPI from './lib/fetch';
 import {_} from 'underscore';
+import {spa} from './lib/spa';
 
 var Immutable = ImmutableDefault.default;
 var redux = reduxDefault.default;
-
-var createStoreWithMiddleware = redux.applyMiddlewares(redux.middlewares.thunk)(redux.createStore);
 
 window._ = _;
 window.Immutable = Immutable;
@@ -21,12 +20,17 @@ window.domain = Object.assign({
     selectors
 }, fetchAPI);
 
-console.log(domain)
-
+var createStoreWithMiddleware = redux.applyMiddlewares(redux.middlewares.thunk)(redux.createStore);
 var store = createStoreWithMiddleware(reducer);
 store.subscribe((state)=>{
     console.log(state)
 });
+
+spa.init();
+
 riot.mount('*');
 riot.mixin('redux', riotRedux(store));
+riot.mixin('view', spa.viewify);
+riot.mixin('addons', spa.addons);
+riot.mixin('base', Object.assign({}, riotRedux(store), spa.addons, spa.viewify));
 

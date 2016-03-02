@@ -26,12 +26,12 @@ var fetchAPI = _interopRequireWildcard(_fetch);
 
 var _underscore = require('underscore');
 
+var _spa = require('./lib/spa');
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var Immutable = ImmutableDefault.default;
 var redux = reduxDefault.default;
-
-var createStoreWithMiddleware = redux.applyMiddlewares(redux.middlewares.thunk)(redux.createStore);
 
 window._ = _underscore._;
 window.Immutable = Immutable;
@@ -41,11 +41,16 @@ window.domain = Object.assign({
     selectors: _index2.selectors
 }, fetchAPI);
 
-console.log(domain);
-
+var createStoreWithMiddleware = redux.applyMiddlewares(redux.middlewares.thunk)(redux.createStore);
 var store = createStoreWithMiddleware(_index3.reducer);
 store.subscribe(function (state) {
     console.log(state);
 });
+
+_spa.spa.init();
+
 riot.mount('*');
 riot.mixin('redux', (0, _index.riotRedux)(store));
+riot.mixin('view', _spa.spa.viewify);
+riot.mixin('addons', _spa.spa.addons);
+riot.mixin('base', Object.assign({}, (0, _index.riotRedux)(store), _spa.spa.addons, _spa.spa.viewify));

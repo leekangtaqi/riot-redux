@@ -1,0 +1,12 @@
+<nest2>
+    <div if="{!hidden}">
+        <div>nest2</div>
+    </div>
+    <script>
+        var self = this.mixin('base');
+        this.on('open', function(){
+            console.log('nest2 opened')
+            self.trigger('ready');
+        })
+    </script>
+</nest2>
