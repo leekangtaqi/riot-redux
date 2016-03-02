@@ -17,10 +17,14 @@ System.config({
     "babel": "npm:babel-core@5.8.35",
     "babel-runtime": "npm:babel-runtime@5.8.35",
     "core-js": "npm:core-js@1.2.6",
+    "facebook/immutable-js.git": "github:facebook/immutable-js@3.7.6",
+    "fetch": "npm:whatwg-fetch@0.11.0",
     "gflux": "npm:gflux@0.1.3",
+    "immutable": "npm:immutable@3.7.6",
     "jquery": "npm:jquery@2.2.1",
     "reselect": "npm:reselect@2.0.3",
     "riot": "npm:riot@2.3.16",
+    "underscore": "npm:underscore@1.8.3",
     "github:jspm/nodelibs-assert@0.1.0": {
       "assert": "npm:assert@1.3.0"
     },

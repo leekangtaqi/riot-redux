@@ -16,16 +16,32 @@ var reduxDefault = _interopRequireWildcard(_build);
 
 var _index4 = require('./actions/index');
 
+var _immutable = require('immutable');
+
+var ImmutableDefault = _interopRequireWildcard(_immutable);
+
+var _fetch = require('./lib/fetch');
+
+var fetchAPI = _interopRequireWildcard(_fetch);
+
+var _underscore = require('underscore');
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+var Immutable = ImmutableDefault.default;
 var redux = reduxDefault.default;
+
 var createStoreWithMiddleware = redux.applyMiddlewares(redux.middlewares.thunk)(redux.createStore);
 
-window.domain = {
+window._ = _underscore._;
+window.Immutable = Immutable;
+window.riot = riot;
+window.domain = Object.assign({
     actions: _index4.actions,
     selectors: _index2.selectors
-};
-window.riot = riot;
+}, fetchAPI);
+
+console.log(domain);
 
 var store = createStoreWithMiddleware(_index3.reducer);
 store.subscribe(function (state) {
