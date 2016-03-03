@@ -65,7 +65,7 @@ spa.addons = {
 
         var subRoute = _riot2.default.route.create();
 
-        configs.forEach(configSubRoute(subRoute, tag));
+        configs.forEach(configureSubRoute(subRoute, tag));
 
         _riot2.default.route.start(true);
 
@@ -73,7 +73,7 @@ spa.addons = {
     }
 };
 
-function configSubRoute(route, tag) {
+function configureSubRoute(route, tag) {
     return function (config) {
 
         var targetTagName = config.name;
