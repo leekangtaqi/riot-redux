@@ -26,103 +26,101 @@ exports.spa = spa = {
     }
 };
 
-spa.addons = {
-    /**
-     * dynamic viewify
-     * @param tag
-     */
-    viewify: function viewify(tag) {
-        if (!tag) {
-            throw new Error('viewify expected to be a tag');
-        }
-        var view = {
-            context: null,
-            hidden: true,
-            isViewified: true,
-            prev: null
-        };
-
-        view.open = function () {
-            view.trigger('open');
-            return view;
-        };
-
-        view.leave = function (from, to) {
-            view.trigger('leave', to);
-            return view;
-        };
-
-        /**
-         * check current view is presenting or not
-         * @returns {boolean}
-         */
-        view.shouldNav = function () {
-            var _this = this;
-
-            try {
-                var _ret = function () {
-                    var uri = getCurrentUrlFragments() || _this.context.req.route;
-                    return {
-                        v: _this.parent.routeRules[_this.routeOrigin].filter(function (rule) {
-                            return rule.indexOf(uri) >= 0;
-                        }).length > 0
-                    };
-                }();
-
-                if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
-            } catch (e) {
-                return false;
-            }
-        };
-
-        view.setParent = function (tag) {
-            view.parent = tag;
-            return view;
-        };
-
-        view = Object.assign(tag, view);
-        return view;
-    },
-
-    /**
-     * configure the route in current tag,
-     * expected to config after the tag is mounted.
-     *
-     * <tag1></tag1>
-     * <tag2></tag2>
-     * @RouteConfig([
-     *     {path:'/posts', name: 'tag1', useAsDefault: true},
-     *     {path:'/user/register', name: 'tag2'},
-     * ])
-     */
-
-    routeConfig: function routeConfig(opts, configs) {
-        var tag = this;
-        if (typeof configs === 'undefined') {
-            configs = opts;
-            opts = undefined;
-        }
-        if (!Array.isArray(configs)) {
-            if ((typeof config === 'undefined' ? 'undefined' : _typeof(config)) != 'object') {
-                configs = [configs];
-            } else {
-                throw new Error('\n                    route\'s configs expected to be a array or a object\n                ');
-            }
-        }
-
-        var subRoute = _riot2.default.route.create();
-
-        tag.routeRules = {};
-
-        configs.forEach(configureSubRoute(subRoute, tag));
-
-        _riot2.default.route.start(true);
-
-        return subRoute;
+/**
+ * configure the route in current tag,
+ * expected to config after the tag is mounted.
+ *
+ * <tag1></tag1>
+ * <tag2></tag2>
+ * @RouteConfig([
+ *     {path:'/posts', name: 'tag1', useAsDefault: true},
+ *     {path:'/user/register', name: 'tag2'},
+ * ])
+ */
+function routeConfig(opts, configs) {
+    var tag = this;
+    if (typeof configs === 'undefined') {
+        configs = opts;
+        opts = undefined;
     }
-};
+    if (!Array.isArray(configs)) {
+        if ((typeof config === 'undefined' ? 'undefined' : _typeof(config)) != 'object') {
+            configs = [configs];
+        } else {
+            throw new Error('\n                route\'s configs expected to be a array or a object\n            ');
+        }
+    }
 
-function configureSubRoute(route, tag) {
+    var subRoute = _riot2.default.route.create();
+
+    tag.routeRules = {};
+
+    configs.forEach(_configureSubRoute(subRoute, tag));
+
+    _riot2.default.route.start(true);
+
+    return subRoute;
+}
+
+/**
+ * dynamic viewify
+ * @param tag
+ */
+function viewify(tag) {
+
+    if (!tag) {
+        throw new Error('viewify expected to be a tag');
+    }
+    var view = {
+        context: null,
+        hidden: true,
+        isViewified: true,
+        prev: null
+    };
+
+    view.open = function () {
+        view.trigger('open');
+        return view;
+    };
+
+    view.leave = function (from, to) {
+        view.trigger('leave', to);
+        return view;
+    };
+
+    /**
+     * check current view is presenting or not
+     * @returns {boolean}
+     */
+    view.shouldNav = function () {
+        var _this = this;
+
+        try {
+            var _ret = function () {
+                var uri = getCurrentUrlFragments() || _this.context.req.route;
+                return {
+                    v: _this.parent.routeRules[_this.routeOrigin].filter(function (rule) {
+                        return rule.indexOf(uri) >= 0;
+                    }).length > 0
+                };
+            }();
+
+            if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    view.setParent = function (tag) {
+        view.parent = tag;
+        return view;
+    };
+
+    view = Object.assign(tag, view);
+    return view;
+}
+
+function _configureSubRoute(route, tag) {
     return function (config) {
 
         var targetTagName = config.name;
@@ -162,7 +160,7 @@ function configureSubRoute(route, tag) {
             body && (context.req.body = body);
 
             if (targetTag.hidden) {
-                doRoute({ context: context, tag: tag, targetTag: targetTag, targetTagName: targetTagName });
+                _doRoute({ context: context, tag: tag, targetTag: targetTag, targetTagName: targetTagName });
             }
         });
 
@@ -175,7 +173,7 @@ function configureSubRoute(route, tag) {
                 }
                 tag.routeRules[config.path].push(getCurrentUrlFragments() || config.path);
 
-                doRoute({ context: context, tag: tag, targetTag: targetTag, targetTagName: targetTagName });
+                _doRoute({ context: context, tag: tag, targetTag: targetTag, targetTagName: targetTagName });
             } catch (e) {
                 console.error(e);
                 throw new Error('parse uri failed.');
@@ -184,14 +182,14 @@ function configureSubRoute(route, tag) {
     };
 }
 
-function doRoute(_ref) {
+function _doRoute(_ref) {
     var context = _ref.context;
     var tag = _ref.tag;
     var targetTag = _ref.targetTag;
     var targetTagName = _ref.targetTagName;
 
 
-    targetTag.isViewified || (targetTag = spa.addons.viewify(targetTag));
+    targetTag.isViewified || (targetTag = viewify(targetTag));
     targetTag.context = context;
     targetTag.off('ready').on('ready', readyHandler).open();
 
@@ -199,7 +197,7 @@ function doRoute(_ref) {
         Object.keys(tag.tags).forEach(function (key) {
 
             var subTag = tag.tags[key];
-            subTag.isViewified || (subTag = spa.addons.viewify(subTag));
+            subTag.isViewified || (subTag = viewify(subTag));
 
             if (key != targetTagName) {
                 if (subTag.hasOwnProperty('hidden') && !subTag.hidden) {
@@ -227,5 +225,9 @@ function getCurrentUrlFragments() {
     }
     return false;
 }
+
+spa.addons = {
+    routeConfig: routeConfig
+};
 
 spa.init = function (opts) {};

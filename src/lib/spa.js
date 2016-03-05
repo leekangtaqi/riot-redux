@@ -13,97 +13,96 @@ spa = {
     }
 };
 
-spa.addons = {
-    /**
-     * dynamic viewify
-     * @param tag
-     */
-    viewify: (tag) => {
-        if(!tag){
-            throw new Error('viewify expected to be a tag');
+/**
+ * configure the route in current tag,
+ * expected to config after the tag is mounted.
+ *
+ * <tag1></tag1>
+ * <tag2></tag2>
+ * @RouteConfig([
+ *     {path:'/posts', name: 'tag1', useAsDefault: true},
+ *     {path:'/user/register', name: 'tag2'},
+ * ])
+ */
+function routeConfig(opts, configs){
+    var tag = this;
+    if(typeof configs === 'undefined'){
+        configs = opts;
+        opts = undefined;
+    }
+    if(!Array.isArray(configs)){
+        if(typeof config != 'object'){
+            configs = [configs];
+        }else{
+            throw new Error(`
+                route's configs expected to be a array or a object
+            `)
         }
-        var view = {
-            context:     null,
-            hidden :     true,
-            isViewified: true,
-            prev:      null
-        };
+    }
 
-        view.open = () =>{
-            view.trigger('open');
-            return view;
-        };
+    var subRoute = riot.route.create();
 
-        view.leave = (from, to) =>{
-            view.trigger('leave', to);
-            return view;
-        };
+    tag.routeRules = {};
 
-        /**
-         * check current view is presenting or not
-         * @returns {boolean}
-         */
-        view.shouldNav = function(){
-            try{
-                let uri = getCurrentUrlFragments() || this.context.req.route;
-                return this.parent.routeRules[this.routeOrigin].filter(
+    configs.forEach(_configureSubRoute(subRoute, tag));
+
+    riot.route.start(true);
+
+    return subRoute;
+}
+
+/**
+ * dynamic viewify
+ * @param tag
+ */
+function viewify(tag){
+
+    if(!tag){
+        throw new Error('viewify expected to be a tag');
+    }
+    var view = {
+        context:     null,
+        hidden :     true,
+        isViewified: true,
+        prev:      null
+    };
+
+    view.open = () =>{
+        view.trigger('open');
+        return view;
+    };
+
+    view.leave = (from, to) =>{
+        view.trigger('leave', to);
+        return view;
+    };
+
+    /**
+     * check current view is presenting or not
+     * @returns {boolean}
+     */
+    view.shouldNav = function(){
+        try{
+            let uri = getCurrentUrlFragments() || this.context.req.route;
+            return this.parent.routeRules[this.routeOrigin].filter(
                     rule=>rule.indexOf(uri)>=0
                 ).length >0;
-            }catch (e){
-                return false;
-            }
-        };
+        }catch (e){
+            return false;
+        }
+    };
 
-        view.setParent = (tag) =>{
-            view.parent = tag;
-            return view;
-        };
-
-        view = Object.assign(tag, view);
+    view.setParent = (tag) =>{
+        view.parent = tag;
         return view;
-    },
+    };
 
-    /**
-     * configure the route in current tag,
-     * expected to config after the tag is mounted.
-     *
-     * <tag1></tag1>
-     * <tag2></tag2>
-     * @RouteConfig([
-     *     {path:'/posts', name: 'tag1', useAsDefault: true},
-     *     {path:'/user/register', name: 'tag2'},
-     * ])
-     */
+    view = Object.assign(tag, view);
+    return view;
+}
 
-    routeConfig(opts, configs){
-        var tag = this;
-        if(typeof configs === 'undefined'){
-            configs = opts;
-            opts = undefined;
-        }
-        if(!Array.isArray(configs)){
-            if(typeof config != 'object'){
-                configs = [configs];
-            }else{
-                throw new Error(`
-                    route's configs expected to be a array or a object
-                `)
-            }
-        }
 
-        var subRoute = riot.route.create();
-
-        tag.routeRules = {};
-
-        configs.forEach(configureSubRoute(subRoute, tag));
-
-        riot.route.start(true);
-
-        return subRoute;
-    }
-};
-
-function configureSubRoute(route, tag){
+function _configureSubRoute(route, tag){
     return (config)=>{
 
         const targetTagName = config.name;
@@ -140,7 +139,7 @@ function configureSubRoute(route, tag){
             body && (context.req.body = body);
 
             if(targetTag.hidden){
-                doRoute({context, tag, targetTag, targetTagName});
+                _doRoute({context, tag, targetTag, targetTagName});
             }
         });
 
@@ -153,7 +152,7 @@ function configureSubRoute(route, tag){
                 }
                 tag.routeRules[config.path].push(getCurrentUrlFragments() || config.path);
 
-                doRoute({context, tag, targetTag, targetTagName});
+                _doRoute({context, tag, targetTag, targetTagName});
             }catch(e){
                 console.error(e);
                 throw new Error('parse uri failed.');
@@ -162,9 +161,9 @@ function configureSubRoute(route, tag){
     };
 }
 
-function doRoute({context, tag, targetTag, targetTagName}){
+function _doRoute({context, tag, targetTag, targetTagName}){
 
-    targetTag.isViewified || (targetTag = spa.addons.viewify(targetTag));
+    targetTag.isViewified || (targetTag = viewify(targetTag));
     targetTag.context = context;
     targetTag.off('ready').on('ready', readyHandler).open();
 
@@ -172,7 +171,7 @@ function doRoute({context, tag, targetTag, targetTagName}){
         Object.keys(tag.tags).forEach(key=>{
 
             let subTag = tag.tags[key];
-            subTag.isViewified || (subTag = spa.addons.viewify(subTag));
+            subTag.isViewified || (subTag = viewify(subTag));
 
             if(key != targetTagName) {
                 if(subTag.hasOwnProperty('hidden') && !subTag.hidden){
@@ -200,6 +199,10 @@ function getCurrentUrlFragments(){
     }
     return false;
 }
+
+spa.addons = {
+    routeConfig
+};
 
 spa.init = function(opts){
 
