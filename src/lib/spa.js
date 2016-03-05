@@ -4,11 +4,13 @@ export var spa = {version: 0.1};
 
 Object.assign(spa, riot.observable());
 
-spa.tags = {};
+spa = {
 
-spa.viewify = {
-    hidden: true,
-    isViewified: true
+    tags: {},
+
+    viewify: {
+        hidden: true
+    }
 };
 
 spa.addons = {
@@ -20,8 +22,45 @@ spa.addons = {
         if(!tag){
             throw new Error('viewify expected to be a tag');
         }
-        tag.hidden = true;
-        tag.isViewified = true;
+        var view = {
+            context:     null,
+            hidden :     true,
+            isViewified: true,
+            prev:      null
+        };
+
+        view.open = () =>{
+            view.trigger('open');
+            return view;
+        };
+
+        view.leave = (from, to) =>{
+            view.trigger('leave', to);
+            return view;
+        };
+
+        /**
+         * check current view is presenting or not
+         * @returns {boolean}
+         */
+        view.shouldNav = function(){
+            try{
+                let uri = getCurrentUrlFragments() || this.context.req.route;
+                return this.parent.routeRules[this.routeOrigin].filter(
+                    rule=>rule.indexOf(uri)>=0
+                ).length >0;
+            }catch (e){
+                return false;
+            }
+        };
+
+        view.setParent = (tag) =>{
+            view.parent = tag;
+            return view;
+        };
+
+        view = Object.assign(tag, view);
+        return view;
     },
 
     /**
@@ -54,6 +93,8 @@ spa.addons = {
 
         var subRoute = riot.route.create();
 
+        tag.routeRules = {};
+
         configs.forEach(configureSubRoute(subRoute, tag));
 
         riot.route.start(true);
@@ -68,6 +109,7 @@ function configureSubRoute(route, tag){
         const targetTagName = config.name;
         let targetTag = tag.tags[targetTagName];
         let body = config.body;
+        targetTag.routeOrigin = config.path;
 
         if(body && typeof body != 'object'){
             throw new Error(`
@@ -75,28 +117,43 @@ function configureSubRoute(route, tag){
             `)
         }
 
+        var context = {};
+
         route(config.path, (...args)=>{
+
+            if(!tag.routeRules[config.path]){
+                tag.routeRules[config.path] = [];
+            }
+            tag.routeRules[config.path].push(getCurrentUrlFragments());
 
             if(!spa.tags[config.name]){
                 !targetTag.isMounted && riot.mount(config.name);
                 spa.tags[config.name] = targetTag;
             }
 
-            let req = {
+            context.req = {
                 query: riot.route.query(),
-                args: args && args.map(arg=>arg && (arg.charAt(0) === '_') && arg.substr(1))
+                fragments: args && args.map(arg=>arg && (arg.charAt(0) === '_') && arg.substr(1)),
+                route: config.path + args.join('/')
             };
-            body && (req.body = body);
+
+            body && (context.req.body = body);
 
             if(targetTag.hidden){
-                bindReadyAndOpen({req, tag, targetTag, targetTagName});
+                doRoute({context, tag, targetTag, targetTagName});
             }
         });
 
         if(config.useAsDefault){
             try{
-                let req = config.useAsDefault;
-                bindReadyAndOpen({req, tag, targetTag, targetTagName});
+                context.req = config.useAsDefault;
+                context.req.route = config.path;
+                if(!tag.routeRules[config.path]){
+                    tag.routeRules[config.path] = [];
+                }
+                tag.routeRules[config.path].push(getCurrentUrlFragments() || config.path);
+
+                doRoute({context, tag, targetTag, targetTagName});
             }catch(e){
                 console.error(e);
                 throw new Error('parse uri failed.');
@@ -105,20 +162,23 @@ function configureSubRoute(route, tag){
     };
 }
 
-function bindReadyAndOpen({req, tag, targetTag, targetTagName}){
+function doRoute({context, tag, targetTag, targetTagName}){
 
-    targetTag.off('ready').on('ready', readyHandler);
-    targetTag.trigger('open', {req});
+    targetTag.isViewified || (targetTag = spa.addons.viewify(targetTag));
+    targetTag.context = context;
+    targetTag.off('ready').on('ready', readyHandler).open();
 
     function readyHandler(){
         Object.keys(tag.tags).forEach(key=>{
 
             let subTag = tag.tags[key];
-            subTag.isViewified || spa.addons.viewify(subTag);
+            subTag.isViewified || (subTag = spa.addons.viewify(subTag));
 
             if(key != targetTagName) {
-                subTag.update({hidden: true});
-                subTag.trigger('leave');
+                if(subTag.hasOwnProperty('hidden') && !subTag.hidden){
+                    subTag.update({hidden: true});
+                    subTag.leave(subTag, targetTag);
+                }
             }else{
                 subTag.update({hidden: false});
             }
@@ -126,6 +186,19 @@ function bindReadyAndOpen({req, tag, targetTag, targetTagName}){
 
         targetTag.off('ready', readyHandler);
     }
+}
+
+function getCurrentUrlFragments(){
+    const fragments = window.location.hash.substr(1).split('/').slice(1);
+    if(fragments.length){
+        return fragments.map(fragment=>{
+            if(fragment.split('?')[1]){
+                return '/' + fragment.split('?')[0];
+            }
+            return '/' + fragment;
+        }).join('')
+    }
+    return false;
 }
 
 spa.init = function(opts){

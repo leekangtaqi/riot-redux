@@ -17,11 +17,13 @@ var spa = exports.spa = { version: 0.1 };
 
 Object.assign(spa, _riot2.default.observable());
 
-spa.tags = {};
+exports.spa = spa = {
 
-spa.viewify = {
-    hidden: true,
-    isViewified: true
+    tags: {},
+
+    viewify: {
+        hidden: true
+    }
 };
 
 spa.addons = {
@@ -33,8 +35,53 @@ spa.addons = {
         if (!tag) {
             throw new Error('viewify expected to be a tag');
         }
-        tag.hidden = true;
-        tag.isViewified = true;
+        var view = {
+            context: null,
+            hidden: true,
+            isViewified: true,
+            prev: null
+        };
+
+        view.open = function () {
+            view.trigger('open');
+            return view;
+        };
+
+        view.leave = function (from, to) {
+            view.trigger('leave', to);
+            return view;
+        };
+
+        /**
+         * check current view is presenting or not
+         * @returns {boolean}
+         */
+        view.shouldNav = function () {
+            var _this = this;
+
+            try {
+                var _ret = function () {
+                    var uri = getCurrentUrlFragments() || _this.context.req.route;
+                    return {
+                        v: _this.parent.routeRules[_this.routeOrigin].filter(function (rule) {
+                            return rule.indexOf(uri) >= 0;
+                        }).length > 0
+                    };
+                }();
+
+                if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+            } catch (e) {
+                return false;
+            }
+        };
+
+        view.setParent = function (tag) {
+            view.parent = tag;
+            return view;
+        };
+
+        view = Object.assign(tag, view);
+        return view;
     },
 
     /**
@@ -65,6 +112,8 @@ spa.addons = {
 
         var subRoute = _riot2.default.route.create();
 
+        tag.routeRules = {};
+
         configs.forEach(configureSubRoute(subRoute, tag));
 
         _riot2.default.route.start(true);
@@ -79,38 +128,54 @@ function configureSubRoute(route, tag) {
         var targetTagName = config.name;
         var targetTag = tag.tags[targetTagName];
         var body = config.body;
+        targetTag.routeOrigin = config.path;
 
         if (body && (typeof body === 'undefined' ? 'undefined' : _typeof(body)) != 'object') {
             throw new Error('\n                body in routeConfig expected to be a object.\n            ');
         }
+
+        var context = {};
 
         route(config.path, function () {
             for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
                 args[_key] = arguments[_key];
             }
 
+            if (!tag.routeRules[config.path]) {
+                tag.routeRules[config.path] = [];
+            }
+            tag.routeRules[config.path].push(getCurrentUrlFragments());
+
             if (!spa.tags[config.name]) {
                 !targetTag.isMounted && _riot2.default.mount(config.name);
                 spa.tags[config.name] = targetTag;
             }
 
-            var req = {
+            context.req = {
                 query: _riot2.default.route.query(),
-                args: args && args.map(function (arg) {
+                fragments: args && args.map(function (arg) {
                     return arg && arg.charAt(0) === '_' && arg.substr(1);
-                })
+                }),
+                route: config.path + args.join('/')
             };
-            body && (req.body = body);
+
+            body && (context.req.body = body);
 
             if (targetTag.hidden) {
-                bindReadyAndOpen({ req: req, tag: tag, targetTag: targetTag, targetTagName: targetTagName });
+                doRoute({ context: context, tag: tag, targetTag: targetTag, targetTagName: targetTagName });
             }
         });
 
         if (config.useAsDefault) {
             try {
-                var req = config.useAsDefault;
-                bindReadyAndOpen({ req: req, tag: tag, targetTag: targetTag, targetTagName: targetTagName });
+                context.req = config.useAsDefault;
+                context.req.route = config.path;
+                if (!tag.routeRules[config.path]) {
+                    tag.routeRules[config.path] = [];
+                }
+                tag.routeRules[config.path].push(getCurrentUrlFragments() || config.path);
+
+                doRoute({ context: context, tag: tag, targetTag: targetTag, targetTagName: targetTagName });
             } catch (e) {
                 console.error(e);
                 throw new Error('parse uri failed.');
@@ -119,25 +184,28 @@ function configureSubRoute(route, tag) {
     };
 }
 
-function bindReadyAndOpen(_ref) {
-    var req = _ref.req;
+function doRoute(_ref) {
+    var context = _ref.context;
     var tag = _ref.tag;
     var targetTag = _ref.targetTag;
     var targetTagName = _ref.targetTagName;
 
 
-    targetTag.off('ready').on('ready', readyHandler);
-    targetTag.trigger('open', { req: req });
+    targetTag.isViewified || (targetTag = spa.addons.viewify(targetTag));
+    targetTag.context = context;
+    targetTag.off('ready').on('ready', readyHandler).open();
 
     function readyHandler() {
         Object.keys(tag.tags).forEach(function (key) {
 
             var subTag = tag.tags[key];
-            subTag.isViewified || spa.addons.viewify(subTag);
+            subTag.isViewified || (subTag = spa.addons.viewify(subTag));
 
             if (key != targetTagName) {
-                subTag.update({ hidden: true });
-                subTag.trigger('leave');
+                if (subTag.hasOwnProperty('hidden') && !subTag.hidden) {
+                    subTag.update({ hidden: true });
+                    subTag.leave(subTag, targetTag);
+                }
             } else {
                 subTag.update({ hidden: false });
             }
@@ -145,6 +213,19 @@ function bindReadyAndOpen(_ref) {
 
         targetTag.off('ready', readyHandler);
     }
+}
+
+function getCurrentUrlFragments() {
+    var fragments = window.location.hash.substr(1).split('/').slice(1);
+    if (fragments.length) {
+        return fragments.map(function (fragment) {
+            if (fragment.split('?')[1]) {
+                return '/' + fragment.split('?')[0];
+            }
+            return '/' + fragment;
+        }).join('');
+    }
+    return false;
 }
 
 spa.init = function (opts) {};

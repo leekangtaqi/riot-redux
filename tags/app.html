@@ -5,7 +5,7 @@
 <app>
     <div>TODO LIST</div>
     <a href="#/nest1">页一跳转</a>
-    <a href="#/nest2">页二跳转</a>
+    <a href="#/nest2?q=11">页二跳转</a>
     <!-- router-outlet -->
     <nest1 todos="{todos}"></nest1>
     <nest2 todos="{todos}"></nest2>
@@ -15,13 +15,11 @@
 
     var self = this;
     this.mixin('base');
-
-
     var loadAllTodos = domain.actions.loadAllTodos;
 
     self.on('mount', function(){
 
-        var subRoute = self.routeConfig([
+        self.routeConfig([
             {
                 path: '/nest1',
                 name: 'nest1',

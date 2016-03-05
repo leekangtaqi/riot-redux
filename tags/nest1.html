@@ -8,17 +8,18 @@
         this.mixin('base');
         var self = this;
         var addTodos = domain.actions.addTodos;
-        this.on('open', function(ctx){
+        this.on('open', function(){
             console.log('nest opened')
             self.trigger('ready');
-            console.log(ctx)
+            console.warn(self.shouldNav());
         });
         this.onClick = function(){
             self.dispatch(addTodos(self.taskName.value))
             self.taskName.value='';
         };
-        this.on('leave', function(){
+        this.on('leave', function(to){
             console.log('leave');
+            console.warn(self.shouldNav());
         });
 
     </script>
